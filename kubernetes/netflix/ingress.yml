@@ -8,7 +8,7 @@ spec:
   ingressClassName: azure-application-gateway   # Azure Application Gateway Ingress Controller (AGIC) handle করবে 
 
   rules:
-  - host: netflix.subhasish.study
+  - host: netflix.subhasish.study     # Domain name
     http:
       paths:
       - path: "/"
