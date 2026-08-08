@@ -14,7 +14,6 @@ env:
   TF_WORKING_DIR: parent
 
 jobs:
-
   terraform:
     name: Terraform
     runs-on: ubuntu-latest
@@ -29,39 +28,50 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      # 3. Azure OIDC Login
+      # 3. Select Azure Client ID based on branch
+      - name: Select Azure Client ID
+        id: azure-client
+        shell: bash
+        run: |
+          if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+            echo "client_id=${{ vars.AZURE_MAIN_CLIENT_ID }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "client_id=${{ vars.AZURE_FEATURE_CLIENT_ID }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      # 4. Azure OIDC Login
       - name: Azure Login
         uses: azure/login@v3
         with:
-          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          client-id: ${{ steps.azure-client.outputs.client_id }}
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
 
-      # 4. Check Azure Login
+      # 5. Check Azure Login
       - name: Azure Account
         run: az account show
 
-      # 5. Terraform Init
+      # 6. Terraform Init
       - name: Terraform Init
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform init
 
-      # 6. Terraform Format Check
+      # 7. Terraform Format Check
       - name: Terraform Format
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform fmt -check -recursive
 
-      # 7. Terraform Validate
+      # 8. Terraform Validate
       - name: Terraform Validate
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform validate
 
-      # 8. Terraform Plan
+      # 9. Terraform Plan
       - name: Terraform Plan
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform plan
 
-      # 9. Apply ONLY on main
+      # 10. Apply ONLY on main
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main'
         working-directory: ${{ env.TF_WORKING_DIR }}
