@@ -38,6 +38,13 @@ jobs:
           else
             echo "client_id=${{ vars.AZURE_FEATURE_CLIENT_ID }}" >> "$GITHUB_OUTPUT"
           fi
+          
+      - name: Debug Azure Configuration
+        run: |
+          echo "Branch: ${GITHUB_REF}"
+          echo "Client ID: ${{ steps.azure-client.outputs.client_id }}"
+          echo "Tenant ID: ${{ vars.AZURE_TENANT_ID }}"
+          echo "Subscription ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}"
 
       # 4. Azure OIDC Login
       - name: Azure Login
