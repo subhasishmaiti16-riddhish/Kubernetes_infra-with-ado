@@ -1,3 +1,3 @@
 variable "appgw_new" {
-  
+
 }

@@ -5,13 +5,13 @@ resource "azurerm_application_gateway" "appgw" {
   resource_group_name = each.value.rg_name
 
   sku {
-  name = "Standard_v2"
-  tier = "Standard_v2"
-}
-autoscale_configuration {
-  min_capacity = 1
-  max_capacity = 3
-}
+    name = "Standard_v2"
+    tier = "Standard_v2"
+  }
+  autoscale_configuration {
+    min_capacity = 1
+    max_capacity = 3
+  }
   gateway_ip_configuration {
     name      = "gateway-ip-config"
     subnet_id = data.azurerm_subnet.data_sub[each.key].id
