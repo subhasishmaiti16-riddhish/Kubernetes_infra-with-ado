@@ -1,3 +1,3 @@
 variable "sub_new" {
-  
+
 }
