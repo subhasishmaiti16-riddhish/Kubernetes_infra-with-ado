@@ -73,11 +73,19 @@ jobs:
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform validate
 
+      # 8.5. Security Scan
+      - name: Security Scan
+        uses: aquasecurity/tfsec-action@v1.0.3
+        with:
+          working_directory: ${{ env.TF_WORKING_DIR }}
+          soft_fail: true
+          
       # 9. Terraform Plan
       - name: Terraform Plan
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform plan
 
+      
       # 10. Apply ONLY on main
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main'
