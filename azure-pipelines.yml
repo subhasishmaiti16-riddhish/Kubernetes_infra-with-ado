@@ -1,0 +1,79 @@
+pool: pipeline-ADO
+
+trigger:
+- main
+- feature/*
+
+variables:
+  terraformWorkingDir: '$(System.DefaultWorkingDirectory)/parent'
+  azureServiceConnection: 'azure-pipeline-yaml'
+  tfBackendRG: 'state-file-rg'
+  tfBackendStorage: 'statefileaccountfork8s'
+  tfBackendContainer: 'statefilestorage'
+  tfBackendKey: 'preprod.statefilestorage'
+
+stages:
+- stage: terraformInitAndPlan
+  displayName: Terraform Init Plan
+
+  jobs:
+  - job: terraformPlan
+    displayName: Terraform Init Plan
+
+    steps:
+    - task: TerraformInstaller@1
+      displayName: Terraform Install
+      inputs:
+        terraformVersion: 'latest'
+
+    - task: TerraformTask@5
+      displayName: Terraform Init
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(terraformWorkingDir)'
+        backendServiceArm: '$(azureServiceConnection)'
+        backendAzureRmResourceGroupName: '$(tfBackendRG)'
+        backendAzureRmStorageAccountName: '$(tfBackendStorage)'
+        backendAzureRmContainerName: '$(tfBackendContainer)'
+        backendAzureRmKey: '$(tfBackendKey)'
+
+    - task: TerraformTask@5
+      displayName: Terraform Plan
+      inputs:
+        provider: 'azurerm'
+        command: 'plan'
+        workingDirectory: '$(terraformWorkingDir)'
+        environmentServiceNameAzureRM: '$(azureServiceConnection)'
+
+- stage: TerraformApply
+  displayName: Terraform Init Apply
+  
+  dependsOn: terraformInitAndPlan
+
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+
+  jobs:
+  - job: TerraformApply
+    displayName: terraform Init Apply
+
+    steps:
+    - task: TerraformTask@5
+      displayName: Terraform Init
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(terraformWorkingDir)'
+        backendServiceArm: '$(azureServiceConnection)'
+        backendAzureRmResourceGroupName: '$(tfBackendRG)'
+        backendAzureRmStorageAccountName: '$(tfBackendStorage)'
+        backendAzureRmContainerName: '$(tfBackendContainer)'
+        backendAzureRmKey: '$(tfBackendKey)'
+
+    - task: TerraformTask@5
+      displayName: Terraform Apply
+      inputs:
+        provider: 'azurerm'
+        command: 'apply'
+        workingDirectory: '$(terraformWorkingDir)'
+        environmentServiceNameAzureRM: '$(azureServiceConnection)'
